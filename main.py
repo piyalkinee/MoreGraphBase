@@ -1,7 +1,6 @@
-import asyncio
-
 from asyncio.runners import run
-from database.core import connect_postgre, disconnect_postgre, database_postgre
+from database.core import connect_postgre, disconnect_postgre
+from modules.postgre import create_graph, test_graph
 
 
 async def main():
@@ -11,15 +10,10 @@ async def main():
 async def postgre_test():
     await connect_postgre()
 
-    query = """
-    CREATE TABLE IF NOT EXISTS "Users" (
-    "Id" integer NOT NULL,
-    "Name" character(32),
-    PRIMARY KEY ("Id")
-    );
-    """
-
-    await database_postgre.execute(query)
+    await test_graph(1, 256)
+    await test_graph(6, 80)
+    await test_graph(75, 1)
+    await test_graph(257, 48)
 
     await disconnect_postgre()
 
