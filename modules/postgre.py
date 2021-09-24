@@ -1,17 +1,15 @@
-from database.core import database_postgre
+from database.core import database_postgre, DB_NAME
 from .dbgenerator import create_graph_string
 
+# CREATE
 
-async def create_graph():
+
+async def postgre_create_graph():
     await create_schema_for_algoritm()
     await create_function()
     await create_schema_for_data()
     await create_table_for_data()
     await create_data()
-
-
-async def test_graph(start: int, end: int):
-    await test(start, end)
 
 
 async def create_schema_for_algoritm():
@@ -119,15 +117,15 @@ async def create_function():
 
 
 async def create_schema_for_data():
-    query = """
-    CREATE SCHEMA IF NOT EXISTS pggraph_dijkstra_test;
+    query = f"""
+    CREATE SCHEMA IF NOT EXISTS {DB_NAME};
     """
     await database_postgre.execute(query)
 
 
 async def create_table_for_data():
-    query = """
-    CREATE TABLE IF NOT EXISTS pggraph_dijkstra_test.graph (
+    query = f"""
+    CREATE TABLE IF NOT EXISTS {DB_NAME}.graph (
       id BIGINT
     , source BIGINT
     , target BIGINT
@@ -141,16 +139,40 @@ async def create_data():
     values: str = create_graph_string(500)
 
     query = f"""
-    INSERT INTO pggraph_dijkstra_test.graph (id, source, target, cost) VALUES
+    INSERT INTO {DB_NAME}.graph (id, source, target, cost) VALUES
     {values};
     """
     await database_postgre.execute(query)
 
 
+# TEST
+
+
+async def postgre_test_graph(start: int, end: int):
+    return await test(start, end)
+
+
 async def test(start: int, end: int):
     query = f"""
-    SELECT * FROM pggraph.dijkstra('SELECT id, source, target, cost FROM pggraph_dijkstra_test.graph', {start} , {end});
+    SELECT * FROM pggraph.dijkstra('SELECT id, source, target, cost FROM {DB_NAME}.graph', {start} , {end});
     """
+    
+    data = await database_postgre.fetch_all(query)
+
+    return data
 
     for x in await database_postgre.fetch_all(query):
         print(list(x.items()))
+
+
+# DELETE
+
+async def postgre_remove_graph():
+    await remove_data()
+
+async def remove_data():
+    query = "DROP SCHEMA morebasedb CASCADE;"
+    await database_postgre.execute(query)
+
+    query = "DROP SCHEMA pggraph CASCADE;"
+    await database_postgre.execute(query)

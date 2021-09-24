@@ -1,5 +1,5 @@
 import random
-#from database.core import database_postgre, DB_NAME
+from database.core import database_postgre, DB_NAME
 
 
 def create_graph_for_postgre(vertex_count: int):
@@ -41,4 +41,17 @@ def create_graph_string(vertex_count: int):
 
     return string
 
-create_graph_string(500)
+
+def format_graph(edges):
+    formated_graph: dict = {1: []}
+    for e in edges:
+        if int(e["target"]) not in formated_graph:
+            formated_graph[int(e["target"])] = []
+        formated_graph[int(e["source"])].append(int(e["target"]))
+
+    return formated_graph
+
+
+async def get_edges():
+    query = f"SELECT * FROM {DB_NAME}.graph LIMIT 10000"
+    return [dict(d) for d in await database_postgre.fetch_all(query)]
