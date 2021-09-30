@@ -1,6 +1,20 @@
-from neo4j import data
-from database.core import connect_neo4j
 from .dbgenerator import format_graph, get_edges
+from neo4j import GraphDatabase
+
+DB_NAME = "morebasedb"
+
+NEO4J_DATABASE_URL = "bolt://localhost:11005"
+
+neo4j_driver = GraphDatabase.driver(NEO4J_DATABASE_URL, auth=("neo4j", "1231"))
+
+
+def connect_neo4j():
+    return neo4j_driver.session(database=DB_NAME)
+
+
+def disconnect_neo4j():
+    neo4j_driver.close()
+
 
 # CREATE
 
@@ -31,7 +45,7 @@ async def neo4j_create_graph():
 
 def create_myGraph():
     query = """
-            CALL gds.graph.create('myGraph', 'vertex', 'PARENT')
+            CALL gds.graph.create('myGraph', 'Location', 'ROAD', {relationshipProperties: 'cost'})
             """
     session = connect_neo4j()
 
@@ -67,8 +81,8 @@ def test(start: int, end: int):
     session = connect_neo4j()
 
     data = session.run(query)
-
-    return data
+    
+    return data.single()[4] #[dict(d) for d in data[0]]
 
 # REMOVE
 

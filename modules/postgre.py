@@ -1,7 +1,61 @@
-from database.core import database_postgre, DB_NAME
-from .dbgenerator import create_graph_string
+import databases
+import random
+
+DB_NAME = "morebasedb"
+
+POSTGRE_DATABASE_URL = f"postgresql://postgres:1231@localhost/{DB_NAME}"
+
+database_postgre = databases.Database(POSTGRE_DATABASE_URL)
+
+
+async def connect_postgre():
+    return await database_postgre.connect()
+
+
+async def disconnect_postgre():
+    await database_postgre.disconnect()
 
 # CREATE
+
+
+def create_graph_for_postgre(vertex_count: int):
+    dots_to_connect: list = [1]
+    dots_map: dict = {}
+
+    last_id: int = 1
+
+    while dots_to_connect != []:
+
+        dots_to_connect_current: int = dots_to_connect.pop(0)
+
+        if dots_to_connect_current >= vertex_count:
+            break
+
+        dots_map[dots_to_connect_current] = []
+
+        for i in range(random.randint(1, 5)):
+            last_id += 1
+            dots_map[dots_to_connect_current].append(last_id)
+            dots_to_connect.append(last_id)
+
+    return dots_map
+
+
+def create_graph_string(vertex_count: int):
+    graph: dict = create_graph_for_postgre(vertex_count)
+
+    string: str = ""
+
+    id: int = 1
+
+    for v1 in graph:
+        for v2 in graph[v1]:
+            string += f"({id},{v1},{v2},1),"
+            id += 1
+
+    string = string[:-1]
+
+    return string
 
 
 async def postgre_create_graph():
@@ -113,6 +167,7 @@ async def create_function():
       SECURITY DEFINER
       SET search_path = pggraph, pg_temp;
     """
+
     await database_postgre.execute(query)
 
 
@@ -156,19 +211,22 @@ async def test(start: int, end: int):
     query = f"""
     SELECT * FROM pggraph.dijkstra('SELECT id, source, target, cost FROM {DB_NAME}.graph', {start} , {end});
     """
-    
+
     data = await database_postgre.fetch_all(query)
 
-    return data
+    data_for_return = []
 
-    for x in await database_postgre.fetch_all(query):
-        print(list(x.items()))
+    for x in data:
+        data_for_return.append(x[1])
+
+    return data_for_return
 
 
 # DELETE
 
 async def postgre_remove_graph():
     await remove_data()
+
 
 async def remove_data():
     query = "DROP SCHEMA morebasedb CASCADE;"
