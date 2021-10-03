@@ -54,12 +54,7 @@ def test(start: int, end: int):
 
 # DELETE
 def memgraph_remove_graph():
-    remove_graph()
-
-
-def remove_graph():
     session = connect_memgraph()
 
-    query = "MATCH (n) DETACH DELETE n"
-
     session.execute("MATCH (n) DETACH DELETE n")
+    
