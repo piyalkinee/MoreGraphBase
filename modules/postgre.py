@@ -58,12 +58,12 @@ def create_graph_string(vertex_count: int):
     return string
 
 
-async def postgre_create_graph():
+async def postgre_create_graph(size: int):
     await create_schema_for_algoritm()
     await create_function()
     await create_schema_for_data()
     await create_table_for_data()
-    await create_data()
+    await create_data(size)
 
 
 async def create_schema_for_algoritm():
@@ -190,8 +190,8 @@ async def create_table_for_data():
     await database_postgre.execute(query)
 
 
-async def create_data():
-    values: str = create_graph_string(500)
+async def create_data(size: int):
+    values: str = create_graph_string(size)
 
     query = f"""
     INSERT INTO {DB_NAME}.graph (id, source, target, cost) VALUES
